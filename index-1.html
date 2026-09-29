@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kunlik reja</title>
+<style>
+:root{--bg:#F4F3FB;--sf:#fff;--ink:#1E1B3A;--mu:#5E5A7D;--ac:#5B4BDB;--ok:#2E9E6B;--ln:#D9D6EE;--p1:#D6455D;--p2:#5B4BDB;--p3:#8A87A6;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14122A;--sf:#1E1B3A;--ink:#ECEBFA;--mu:#A9A6C9;--ac:#9A8DFF;--ok:#5BD69B;--ln:#34305E;--p1:#FF7A8D;--p2:#9A8DFF;--p3:#8F8CB0}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.w{max-width:640px;margin:0 auto;padding:16px}
+button,input,select{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.nav h1{font-size:22px;margin:0;text-align:center;letter-spacing:-.02em;flex:1}
+.nav small{display:block;color:var(--mu);font-weight:400;font-size:14px;letter-spacing:0}
+.ib{background:var(--sf);border:1px solid var(--ln);border-radius:10px;width:44px;height:44px;cursor:pointer;font-size:18px}
+.today{margin:10px auto 0;display:block;background:none;border:0;color:var(--ac);font-weight:600;cursor:pointer}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:14px;padding:16px;margin-top:14px}
+label{display:block;font-size:14px;color:var(--mu);margin-bottom:4px}
+input,select{width:100%;padding:11px;border:1px solid var(--ln);border-radius:9px;background:var(--bg)}
+.bar{height:10px;background:var(--bg);border-radius:9px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;background:var(--ok);width:0;transition:width .3s}
+.pr{display:flex;justify-content:space-between;font-weight:600}
+.add{display:grid;grid-template-columns:1fr 110px 120px;gap:8px}
+.add .full{grid-column:1/-1}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:10px;padding:12px;font-weight:700;cursor:pointer}
+.btn.g{background:none;color:var(--ink);border:1px solid var(--ln)}
+@media (max-width:480px){.add{grid-template-columns:1fr 1fr}.add .full{grid-column:1/-1}}
+ul{list-style:none;margin:0;padding:0}
+li{display:flex;align-items:center;gap:10px;padding:12px 8px;border-bottom:1px solid var(--ln);border-left:4px solid var(--p2)}
+li.p1{border-left-color:var(--p1)}li.p3{border-left-color:var(--p3)}
+li input[type=checkbox]{width:22px;height:22px;flex:none;accent-color:var(--ok)}
+li .t{flex:1;word-break:break-word}
+li.done .t{text-decoration:line-through;color:var(--mu)}
+.tm{color:var(--mu);font-size:14px;font-variant-numeric:tabular-nums}
+.x{background:none;border:0;color:var(--mu);font-size:20px;cursor:pointer;width:36px;height:36px}
+.empty{color:var(--mu);text-align:center;padding:20px 0}
+.row{display:flex;gap:8px;margin-top:14px}.row .btn{flex:1}
+</style>
+</head>
+<body>
+<div class="w">
+  <div class="nav">
+    <button class="ib" id="pv" aria-label="Oldingi kun">‹</button>
+    <h1 id="dt"></h1>
+    <button class="ib" id="nx" aria-label="Keyingi kun">›</button>
+  </div>
+  <button class="today" id="td">Bugunga qaytish</button>
+
+  <div class="card">
+    <label for="goal">Bugungi asosiy maqsad</label>
+    <input id="goal" maxlength="120" placeholder="Masalan: IELTS Writing 2 ni tugatish">
+  </div>
+
+  <div class="card">
+    <div class="pr"><span id="pt">0 / 0 bajarildi</span><span id="pp">0%</span></div>
+    <div class="bar"><i id="pb"></i></div>
+  </div>
+
+  <div class="card">
+    <div class="add">
+      <div class="full"><label for="nt">Yangi vazifa</label><input id="nt" maxlength="120" placeholder="Nima qilish kerak?"></div>
+      <div><label for="ntm">Vaqt</label><input id="ntm" type="time"></div>
+      <div><label for="npr">Muhimlik</label><select id="npr"><option value="1">Muhim</option><option value="2" selected>Oddiy</option><option value="3">Keyin</option></select></div>
+      <button class="btn full" id="ad">Qo'shish</button>
+    </div>
+  </div>
+
+  <div class="card"><ul id="ls"></ul>
+    <div class="row"><button class="btn g" id="mv">Tugallanmaganlarni ertaga ko'chirish</button><button class="btn g" id="cl">Bajarilganlarni tozalash</button></div>
+  </div>
+</div>
+
+<script>
+var KEY="kunlik_reja_v1",mem=null;
+var MO=["yanvar","fevral","mart","aprel","may","iyun","iyul","avgust","sentabr","oktabr","noyabr","dekabr"];
+var WD=["Yakshanba","Dushanba","Seshanba","Chorshanba","Payshanba","Juma","Shanba"];
+function load(){
+  if(mem)return mem;
+  try{var t=localStorage.getItem(KEY);if(t){mem=JSON.parse(t);return mem}}catch(e){}
+  mem={tasks:{},goal:{}};return mem;
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(mem))}catch(e){}}
+function ds(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function pd(s){var a=s.split("-");return new Date(+a[0],+a[1]-1,+a[2])}
+var cur=ds(new Date());
+function $(i){return document.getElementById(i)}
+function list(){var d=load();if(!d.tasks[cur])d.tasks[cur]=[];return d.tasks[cur]}
+function shift(n){var d=pd(cur);d.setDate(d.getDate()+n);cur=ds(d);render()}
+
+function render(){
+  var d=pd(cur),all=list(),data=load();
+  $("dt").innerHTML="";
+  $("dt").appendChild(document.createTextNode(d.getDate()+" "+MO[d.getMonth()]));
+  var sm=document.createElement("small");sm.textContent=WD[d.getDay()]+(cur===ds(new Date())?" · bugun":"");
+  $("dt").appendChild(sm);
+  $("goal").value=data.goal[cur]||"";
+  var sorted=all.slice().sort(function(a,b){
+    if(a.done!==b.done)return a.done?1:-1;
+    if(a.time&&b.time)return a.time<b.time?-1:1;
+    if(a.time!==b.time)return a.time?-1:1;
+    return a.pri-b.pri;
+  });
+  var ul=$("ls");ul.innerHTML="";
+  if(!sorted.length){var e=document.createElement("div");e.className="empty";e.textContent="Bu kunga vazifa yo'q. Yuqoridan qo'shing.";ul.appendChild(e)}
+  sorted.forEach(function(t){
+    var li=document.createElement("li");li.className="p"+t.pri+(t.done?" done":"");
+    var cb=document.createElement("input");cb.type="checkbox";cb.checked=t.done;cb.setAttribute("aria-label","Bajarildi");
+    cb.onchange=function(){t.done=cb.checked;save();render()};
+    var tx=document.createElement("span");tx.className="t";tx.textContent=t.text;
+    li.appendChild(cb);li.appendChild(tx);
+    if(t.time){var tm=document.createElement("span");tm.className="tm";tm.textContent=t.time;li.appendChild(tm)}
+    var x=document.createElement("button");x.className="x";x.textContent="×";x.setAttribute("aria-label","O'chirish");
+    x.onclick=function(){var a=list();a.splice(a.indexOf(t),1);save();render()};
+    li.appendChild(x);ul.appendChild(li);
+  });
+  var n=all.length,k=all.filter(function(t){return t.done}).length,p=n?Math.round(k/n*100):0;
+  $("pt").textContent=k+" / "+n+" bajarildi";$("pp").textContent=p+"%";$("pb").style.width=p+"%";
+}
+function add(){
+  var v=$("nt").value.trim();if(!v){$("nt").focus();return}
+  list().push({id:Date.now(),text:v,time:$("ntm").value,pri:+$("npr").value,done:false});
+  save();$("nt").value="";$("ntm").value="";render();$("nt").focus();
+}
+$("ad").onclick=add;
+$("nt").onkeydown=function(e){if(e.key==="Enter")add()};
+$("pv").onclick=function(){shift(-1)};$("nx").onclick=function(){shift(1)};
+$("td").onclick=function(){cur=ds(new Date());render()};
+$("goal").oninput=function(){load().goal[cur]=this.value;save()};
+$("mv").onclick=function(){
+  var a=list(),left=a.filter(function(t){return !t.done});
+  if(!left.length)return;
+  var d=pd(cur);d.setDate(d.getDate()+1);var nk=ds(d),dd=load();
+  if(!dd.tasks[nk])dd.tasks[nk]=[];
+  left.forEach(function(t){dd.tasks[nk].push(t)});
+  dd.tasks[cur]=a.filter(function(t){return t.done});
+  save();cur=nk;render();
+};
+$("cl").onclick=function(){load().tasks[cur]=list().filter(function(t){return !t.done});save();render()};
+render();
+</script>
+</body>
+</html>
