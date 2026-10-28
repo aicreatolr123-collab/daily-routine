@@ -144,3 +144,85 @@ render();
 </script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tashqi Bildirishnoma</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f4f4f9;
+      margin: 0;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      font-size: 16px;
+      color: #fff;
+      background-color: #007bff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: background 0.3s;
+    }
+
+    .btn:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+  <button class="btn" onclick="sendNotification()">Bildirishnoma yuborish</button>
+
+  <script>
+    function sendNotification() {
+      // 1. Brauzer bildirishnomalarni qo'llab-quvvatlashini tekshirish
+      if (!("Notification" in window)) {
+        alert("Sizning brauzeringiz tashqi bildirishnomalarni qo'llab-quvvatlamaydi!");
+        return;
+      }
+
+      // 2. Ruxsat holatini tekshirish
+      if (Notification.permission === "granted") {
+        showNotification();
+      } else if (Notification.permission !== "denied") {
+        // 3. Foydalanuvchidan ruxsat so'rash
+        Notification.requestPermission().then(permission => {
+          if (permission === "granted") {
+            showNotification();
+          }
+        });
+      } else {
+        alert("Bildirishnomalar bloklangan. Brauzer sozlamalaridan ruxsat bering.");
+      }
+    }
+
+    function showNotification() {
+      const options = {
+        body: "Bu sizning saytingizdan kelgan tashqi bildirishnoma!",
+        icon: "https://cdn-icons-png.flaticon.com/512/1827/1827504.png", // Rasm/Ikonka havolasi
+        badge: "https://cdn-icons-png.flaticon.com/512/1827/1827504.png"
+      };
+
+      const notification = new Notification("Yangi xabar!", options);
+
+      // Bildirishnoma bosilganda bajariladigan amal (masalan, sahifani ochish)
+      notification.onclick = function() {
+        window.focus();
+        this.close();
+      };
+    }
+  </script>
+
+</body>
+</html>
+
